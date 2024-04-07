@@ -7,17 +7,16 @@ import os
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Токен бота в Telegram
 TOKEN = os.environ.get('BOT_TOKEN', '6624184020:AAES-8_2r1hb9CJ0YZMeMc8dXKY6lw7OX98')
 
-# URL для подключения к базе данных PostgreSQL
 DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://katusha:password@localhost:5432/tgbot')
 
-# Создание объекта бота
 bot = telebot.TeleBot(TOKEN)
 
-# Функция для создания таблицы articles в базе данных, если она не существует
-def create_articles_table():
+def create_articles_table() -> None:
+    """
+    Создание таблицы в базе данных, если она не существует.
+    """
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute("""
@@ -31,20 +30,29 @@ def create_articles_table():
     cursor.close()
     conn.close()
 
-# Создание таблицы articles
 create_articles_table()
 
-# Функция обработки команды /start
 @bot.message_handler(commands=['start'])
-def start(message):
+def start(message: telebot.types.Message) -> None:
+    """
+    Обработка команды /start.
+
+    Аргумент:
+    message - сообщение от пользователя.
+    """
     bot.send_message(message.chat.id, "Привет! Я бот, который поможет не забыть прочитать статьи, найденные тобой в интернете :)\n\n"
                                       "- Чтобы я запомнил статью, достаточно передать мне ссылку на нее. К примеру https://example.com.\n\n"
                                       "- Чтобы получить случайную статью, достаточно передать мне команду /get_article.\n\n"
                                       "Но помни, отдавая статью тебе на прочтения, она больше не хранится в моей базе. Так что тебе точно нужно ее изучить!")
 
-# Функция обработки команды /get_article
 @bot.message_handler(commands=['get_article'])
-def get_article(message):
+def get_article(message: telebot.types.Message) -> None:
+    """
+    Обработка команды /get_article.
+
+    Аргумент:
+    message - сообщение от полльзователя.
+    """
     user_id = message.from_user.id
     try:
         # Подключение к базе данных
@@ -70,7 +78,13 @@ def get_article(message):
 
 # Функция для сохранения статьи в базу данных
 @bot.message_handler(func=lambda message: message.text.startswith('http'))
-def save_article(message):
+def save_article(message: telebot.types.Message) -> None:
+    """
+    Сохранение ссылки на статью в базу данных.
+
+    Аргумент:
+    message - сообщение от пользователя.
+    """
     user_id = message.from_user.id
     article_url = message.text
 
@@ -96,13 +110,18 @@ def save_article(message):
         cursor.close()
         conn.close()
 
-# Функция обработки неизвестных команд
 @bot.message_handler(func=lambda message: True)
-def unknown(message):
+def unknown(message: telebot.types.Message) -> None:
+    """
+    Обработка неизвестных команд.
+    """
     bot.send_message(message.chat.id, "Извините, такая команда мне неизвестна.")
 
 # Запуск бота
-def main():
+def main() -> None:
+    """
+    Запуск бота.
+    """
     bot.polling()
 
 if __name__ == '__main__':
